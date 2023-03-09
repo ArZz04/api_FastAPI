@@ -10,7 +10,7 @@ from db.client import db_client
 from db.models.user import User, UserDB
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_DURATION = 1
+ACCESS_TOKEN_DURATION = 10
 SECRET = "$2y$10$eDExHEG0GSWUvXhoxWovM./wsJS38BHu69l3qouX3zKNDGdqp7pve" #karlita 2 times
 
 router = APIRouter(prefix="/auth",
@@ -61,7 +61,7 @@ async def current_user(user: User = Depends(auth_user)):
     return user
 # PATHS
 
-@router.post("/")
+@router.post("/login")
 async def login(form: OAuth2PasswordRequestForm = Depends()):
     user = search_user_db(form.username)
     if not user:

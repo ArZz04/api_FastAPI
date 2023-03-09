@@ -1,23 +1,45 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from db.models.product import Product
 from db.schemas.product import product_schema, products_schema
 from db.client import db_client
 from bson import ObjectId
+from jose import JWTError, jwt
 
+security = HTTPBearer()
 router = APIRouter(prefix="/product",
                    tags=["product"],
                    responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado"}})
 
+SECRET = "$2y$10$eDExHEG0GSWUvXhoxWovM./wsJS38BHu69l3qouX3zKNDGdqp7pve" #karlita 2 times
+
+# función que verifica el token
+async def verify_token(token: str):
+    try:
+        # decodifica el token y verifica la firma
+        payload = jwt.decode(token, SECRET, algorithms=["HS256"])
+        # aquí puedes verificar el contenido del payload si lo deseas
+    except JWTError:
+        # si hay un error en la verificación, se lanza una excepción
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
+    # si todo está bien, devuelve el payload
+    return payload
+
 @router.get("/", response_model=list[Product])
-async def products():
+async def products(token: HTTPAuthorizationCredentials = Depends(security)):
+    payload = await verify_token(token.credentials)
+
     return products_schema(db_client.products.find())
 
 @router.get("/{id}")  # Path
-async def product(id: str):
+async def product(id: str, token: HTTPAuthorizationCredentials = Depends(security)):
+    payload = await verify_token(token.credentials)
+
     return search_product("_id", ObjectId(id))
 
 @router.post("/", response_model=Product, status_code=status.HTTP_201_CREATED)
-async def product(product: Product):
+async def product(product: Product, token: HTTPAuthorizationCredentials = Depends(security)):
+    payload = await verify_token(token.credentials)
 
     if type(search_product("ean", product.ean)) == Product:
        raise HTTPException(
@@ -34,7 +56,8 @@ async def product(product: Product):
 
 
 @router.put("/", response_model=Product)
-async def product_update(product: Product):
+async def product_update(product: Product, token: HTTPAuthorizationCredentials = Depends(security)):
+    payload = await verify_token(token.credentials)
 
     try:
 
@@ -51,7 +74,8 @@ async def product_update(product: Product):
 
 
 @router.delete("/{id}")
-async def product(id: str):
+async def product(id: str, token: HTTPAuthorizationCredentials = Depends(security)):
+    payload = await verify_token(token.credentials)
 
     found = db_client.products.find_one_and_delete({"_id": ObjectId(id)})
 
