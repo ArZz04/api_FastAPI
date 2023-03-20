@@ -1,11 +1,12 @@
 from fastapi import FastAPI
-from routers import users, jwt_auth_users, product_price
+from routers import users, jwt_auth_users, product, get_info
 
 app = FastAPI()
 
 app.include_router(users.router)
 app.include_router(jwt_auth_users.router)
-app.include_router(product_price.router)
+app.include_router(product.router)
+app.include_router(get_info.router)
 
 @app.get("/")
 async def root():

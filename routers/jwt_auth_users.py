@@ -10,12 +10,14 @@ from db.client import db_client
 from db.models.user import User, UserDB
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_DURATION = 10
+ACCESS_TOKEN_DURATION = 999999999
 SECRET = "$2y$10$eDExHEG0GSWUvXhoxWovM./wsJS38BHu69l3qouX3zKNDGdqp7pve" #karlita 2 times
 
-router = APIRouter(prefix="/auth",
-                   tags=["auth"],
-                   responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado"}})
+router = APIRouter(responses={status.HTTP_404_NOT_FOUND: {"message": "No encontrado"}})
+
+#prefix="/auth",
+                   #tags=["auth"],
+                   
 
 oauth2 = OAuth2PasswordBearer(tokenUrl='login')
 
